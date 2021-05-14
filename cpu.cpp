@@ -1,38 +1,36 @@
 #include "cpu.h"
-#define read16 uint16_t* val = reinterpret_cast<uint16_t*>(memory+pc); pc+=2
-#define read8 uint8_t* val = reinterpret_cast<uint8_t *>(memory+pc); pc+=1
-#define read_16(x) uint16_t* val = reinterpret_cast<uint16_t*>(memory+x)
-#define read_8(x) uint8_t* val = reinterpret_cast<uint8_t *>(memory+x)
+#include "memorysegment.h"
 
-#define shift16 uint16_t shifted_val = ((*val & 0xFF00) >> 8) | ((*val & 0x00FF) << 8)
-#define s16(x) ((x & 0xFF00) >> 8) | ((x & 0x00FF) << 8)
-
-#define r16 reinterpret_cast<uint16_t*>(memory+pc); pc+=2
-#define r8 reinterpret_cast<uint8_t *>(memory+pc); pc+=1
-#define r_16(x) reinterpret_cast<uint16_t*>(memory+x)
-#define r_8(x) reinterpret_cast<uint8_t *>(memory+x)
-
-#define read16_s int16_t* val = reinterpret_cast<int16_t*>(memory+pc); pc+=2
-#define read8_s int8_t* val = reinterpret_cast<int8_t*>(memory + pc); pc+=1
-#define read_16_s(x) int16_t* val = reinterpret_cast<int16_t*>(memory + x)
-#define read_8_s(x) int8_t* val = reinterpret_cast<int8_t *>(memory+x)
-
-#define r16_s reinterpret_cast<int16_t*>(memory+pc); pc+=2
-#define r8_s reinterpret_cast<int8_t*>(memory + pc); pc+=1
-#define r_16_s(x) reinterpret_cast<int16_t*>(memory + x)
-#define r_8_s(x) reinterpret_cast<int8_t *>(memory+x)
+#define read16 MemorySegment* val = memory[pc]; pc+=2
+#define read8 MemorySegment* val = memory[pc]; pc+=1
+#define read_16(x) MemorySegment* val =memory[x]
+#define read_8(x) MemorySegment* val = memory[x]
 
 
 
-cppb::CPU::CPU() {
+#define r16 memory[pc]; pc+=2
+#define r8 memory[pc]; pc+=1
+#define r_16(x) memory[x]
+#define r_8(x) memory[x]
+
+
+
+
+cppb::CPU::CPU(): a(&(registers.a), memory), b(&(registers.b), memory), c(&(registers.c), memory),
+    d(&(registers.d), memory), e(&(registers.e), memory), f(&(registers.f), memory),
+    h(&(registers.h), memory), l(&(registers.l), memory), af(&(registers.af), memory),
+    bc(&(registers.bc), memory), de(&(registers.de), memory), hl(&(registers.hl), memory),
+    sp(&(pc_dir), memory), pc(&(sp_dir), memory)
+{
     instructions[0x00] = [this] {return; };
     instructions[0x01] = [this](){
         read16;
-        bc = *val;
+        uint16_t v = *val;
+        bc = v;
         return;
     };
     instructions[0x02] = [this]() {
-        memory[bc] = a;
+        *memory[bc] = (uint8_t)a;
         return;
     };
     instructions[0x03] = [this]() {
@@ -58,9 +56,7 @@ cppb::CPU::CPU() {
     };
     instructions[0x08] = [this]() {
         read16;
-        shift16;
-        memory[*val] = shifted_val & 0x00FF;
-        memory[*val + 1] = (uint8_t)((shifted_val & 0xFF00) >> 8);
+        *memory[(uint16_t)*val] = (uint16_t)sp;
         return;
     };
     instructions[0x9] = [this]() {
@@ -68,7 +64,7 @@ cppb::CPU::CPU() {
         return;
     };
     instructions[0x0a] = [this]() {
-        load(&a, memory[bc]);
+        load(&a, *memory[bc]);
         return;
     };
     instructions[0x0b] = [this]() {
@@ -103,8 +99,8 @@ cppb::CPU::CPU() {
         return;
     };
     instructions[0x12] = [this]() {
-        read_8(de);
-        *val = a;
+        read_8((uint16_t)de);
+        *val = (uint8_t)a;
         return;
     };
     instructions[0x13] = [this]() {
@@ -129,8 +125,9 @@ cppb::CPU::CPU() {
         return;
     };
     instructions[0x18] = [this]() {
-        read8_s;
-        pc += *val;
+        read8;
+        int v = static_cast<int>((uint8_t)*val);
+        pc += v;
         return;
     };
     instructions[0x19] = [this]() {
@@ -138,7 +135,7 @@ cppb::CPU::CPU() {
         return;
     };
     instructions[0x1a] = [this]() {
-        load(&a, memory[de]);
+        load(&a, *memory[de]);
         return;
     };
     instructions[0x1b] = [this]() {
@@ -163,9 +160,10 @@ cppb::CPU::CPU() {
         return;
     };
     instructions[0x20] = [this] {
-        read8_s;
+        read8;
+        int v = static_cast<int>((uint8_t)*val);
         if (!registers.zero) {
-            pc += *val;
+            pc += v;
         }
         return;
     };
@@ -202,9 +200,10 @@ cppb::CPU::CPU() {
         return;
     };
     instructions[0x28] = [this]() {
-        read8_s;
+        read8;
+        int v = static_cast<int>((uint8_t)*val);
         if (registers.zero) {
-            pc += *val;
+            pc += v;
         }
         return;
     };
@@ -240,9 +239,10 @@ cppb::CPU::CPU() {
         return;
     };
     instructions[0x30] = [this] {
-        read8_s;
+        read8;
+        int v = static_cast<int>((uint8_t)*val);
         if (!registers.carry) {
-            pc += *val;
+            pc += v;
         }
         return;
     };
@@ -273,7 +273,7 @@ cppb::CPU::CPU() {
     };
     instructions[0x36] = [this]() {
         read8;
-        uint8_t *to_write = r_8(hl);
+        MemorySegment *to_write = r_8((uint16_t)hl);
         load(to_write, *val);
         return;
     };
@@ -282,9 +282,10 @@ cppb::CPU::CPU() {
         return;
     };
     instructions[0x38] = [this]() {
-        read8_s;
+        read8;
+        int v = static_cast<int>((uint8_t)*val);
         if (registers.carry) {
-            pc += *val;
+            pc += v;
         }
         return;
     };
@@ -891,7 +892,7 @@ cppb::CPU::CPU() {
     };
     instructions[0xc7] = [this]() {
         push(pc);
-        pc = 0;
+        pc = (uint16_t)0;
         return;
     };
     instructions[0xc8] = [this]() {
@@ -933,7 +934,7 @@ cppb::CPU::CPU() {
     };
     instructions[0xcf] = [this]() {
         push(pc);
-        pc = 0+0x08;
+        pc = (uint16_t)(0+0x08);
         return;
     };
     instructions[0xd0] = [this] {
@@ -973,7 +974,7 @@ cppb::CPU::CPU() {
     };
     instructions[0xd7] = [this]() {
         push(pc);
-        pc = 0+0x10;
+        pc = (uint16_t)(0+0x10);
         return;
     };
     instructions[0xd8] = [this]() {
@@ -1013,13 +1014,13 @@ cppb::CPU::CPU() {
     };
     instructions[0xdf] = [this]() {
         push(pc);
-        pc = 0 + 0x18;
+        pc = (uint16_t)(0 + 0x18);
         return;
     };
     instructions[0xe0] = [this] {
         read8;
-        uint8_t* to_push = r_8(0xFF00 + *val);
-        *to_push = a;
+        MemorySegment* to_push = r_8((uint16_t)(0xFF00 + (uint8_t)*val));
+        *to_push = (uint8_t)a;
         return;
     };
     instructions[0xe1] = [this]() {
@@ -1027,8 +1028,8 @@ cppb::CPU::CPU() {
         return;
     };
     instructions[0xe2] = [this]() {
-        read_8(0xff00 + c);
-        *val = a;
+        MemorySegment *val = r_8((uint16_t)(0xFF00 + (uint8_t)c));
+        *val = (uint8_t)a;
         return;
     };
     instructions[0xe3] = [this]() {
@@ -1048,16 +1049,17 @@ cppb::CPU::CPU() {
     };
     instructions[0xe7] = [this]() {
         push(pc);
-        pc = 0 + 0x20;
+        pc = (uint16_t)(0 + 0x20);
         return;
     };
     instructions[0xe8] = [this]() {
-        read8_s;
-        add_sp(*val);
+        read8;
+        int v = static_cast<int>((uint8_t)*val);
+        add_sp(v);
         return;
     };
     instructions[0xe9] = [this]() {
-        pc = hl;
+        pc = (uint16_t)hl;
         return;
     };
     instructions[0xea] = [this]() {
@@ -1079,13 +1081,13 @@ cppb::CPU::CPU() {
     };
     instructions[0xef] = [this]() {
         push(pc);
-        pc = 0 + 0x28;
+        pc = (uint16_t)(0 + 0x28);
         return;
     };
     instructions[0xf0] = [this] {
         read8;
-        uint8_t* to_push = r_8(0xFF00 + *val);
-        a = *to_push;
+        MemorySegment* to_push = r_8((uint16_t)(0xFF00 + (uint8_t)*val));
+        a = (uint8_t)*to_push;
         return;
     };
     instructions[0xf1] = [this]() {
@@ -1093,8 +1095,8 @@ cppb::CPU::CPU() {
         return;
     };
     instructions[0xf2] = [this]() {
-        read_8(0xff00 + c);
-        a = *val;
+        MemorySegment *val = r_8((uint16_t)(0xFF00 + (uint8_t)c));
+        a = (uint8_t)*val;
         return;
     };
     instructions[0xf3] = [this]() {
@@ -1115,32 +1117,30 @@ cppb::CPU::CPU() {
     };
     instructions[0xf7] = [this]() {
         push(pc);
-        pc = 0 + 0x30;
+        pc = (uint16_t)(0 + 0x30);
         return;
     };
     instructions[0xf8] = [this]() {
-        read8_s;
-        uint16_t r = *val + sp;
+        read8;
+        int v = static_cast<int>((uint8_t)*val);
+        int r = v + (uint16_t)sp;
+
         clearAllFlags();
-        if ((sp ^ *val ^ r) & 0x100)
+        if (((uint16_t)sp ^ v ^ r) & 0x100)
             setFlags(F_CARRY);
-        if ((sp ^ *val ^ r) & 0x10)
+        if (((uint16_t)sp ^ v ^ r) & 0x10)
             setFlags(F_HALF);
-        hl = r;
+        hl = (uint16_t)r;
         return;
     };
     instructions[0xf9] = [this]() {
-        sp = hl;
+        sp = (uint16_t)hl;
         return;
     };
     instructions[0xfa] = [this]() {
-        uint8_t* lsb = r8;
-        uint8_t* msb = r8;
-        uint16_t value = 0;
-        value |= (*lsb & 0x00FF);
-        value |= (*msb & 0x00FF) << 8;
-        uint8_t* to_load = r_8(value);
-        a = *to_load;
+        read16;
+        MemorySegment* to_load = r_8((uint16_t)*val);
+        a = (uint8_t)*to_load;
         return;
     };
     instructions[0xfb] = [this]() {
@@ -1162,7 +1162,7 @@ cppb::CPU::CPU() {
     };
     instructions[0xff] = [this]() {
         push(pc);
-        pc = 0 + 0x38;
+        pc = (uint16_t)(0 + 0x38);
         return;
     };
 
@@ -2229,59 +2229,55 @@ cppb::CPU::CPU() {
 
 void cppb::CPU::clearAllFlags()
 {
-    f &= 0x0f;
+    f = (uint8_t)((uint8_t)f & 0x0f);
 }
 
 void cppb::CPU::clearFlags(uint8_t flags)
 {
-    f &= (~flags);
+    f = (uint8_t)((uint8_t)f &(~flags));
 }
 
 void cppb::CPU::setAllFlags()
 {
-    f |= 0xF0;
+    f = (uint8_t)((uint8_t)f | 0xF0);
 }
 
 void cppb::CPU::setFlags(uint8_t flags)
 {
-    f |= flags;
+    f = (uint8_t)((uint8_t)f |flags);
 }
 
-void cppb::CPU::load(uint8_t* dst, uint8_t src)
+void cppb::CPU::load(MemorySegment* dst, uint8_t src)
 {
     *dst = src;
 }
 
-void cppb::CPU::load_16(uint16_t* dst, uint16_t src)
+void cppb::CPU::load_16(MemorySegment* dst, uint16_t src)
 {
     *dst = src;
 }
 
 void cppb::CPU::push(uint16_t val)
 {
-    uint8_t* mem = reinterpret_cast<uint8_t*>(memory[--sp]);
-    *mem = (val & 0xFF00) >> 8;
-    mem = reinterpret_cast<uint8_t*>(memory[--sp]);
-    *mem = val & 0x00FF;
+    MemorySegment* mem = memory[--sp];
+    *mem = (uint8_t)((val & 0xFF00) >> 8);
+    mem = memory[--sp];
+    *mem = (uint8_t)(val & 0x00FF);
 }
 
-void cppb::CPU::pop(uint16_t* dst)
+void cppb::CPU::pop(MemorySegment* dst)
 {
     uint8_t l, h;
-    uint8_t* mem = reinterpret_cast<uint8_t*>(memory[sp++]);
+    MemorySegment* mem = memory[sp++];
     l = *mem;
-    mem = reinterpret_cast<uint8_t*>(memory[sp++]);
+    mem = memory[sp++];
     h = *mem;
-    *dst = (uint16_t)(h << 8) + l;
+    *dst = (uint16_t)((uint16_t)(h << 8) + l);
 }
 
 void cppb::CPU::jmp(uint16_t val)
 {
-    uint8_t h = ((val & 0xFF00) >> 8) & 0x00FF;
-    uint8_t l = (val & 0x00FF);
-
-    uint16_t r = (uint16_t)(l << 8) + (uint16_t)h;
-    pc = r;
+    pc = val;
 }
 
 uint8_t cppb::CPU::inc(uint8_t value)
@@ -2317,9 +2313,9 @@ void cppb::CPU::add(uint8_t value)
 {
     clearAllFlags();
 
-    int result = a + value;
+    int result = (uint8_t)a + value;
 
-    int carrys = a ^ value ^ result;
+    int carrys = (uint8_t)a ^ value ^ result;
 
     if (result == 0) setFlags(F_ZERO);
 
@@ -2333,7 +2329,7 @@ void cppb::CPU::add(uint8_t value)
 
 void cppb::CPU::adc(uint8_t value)
 {
-    int result = a + value + registers.carry;
+    int result = (uint8_t)a + value + registers.carry;
     clearAllFlags();
 
 
@@ -2344,7 +2340,7 @@ void cppb::CPU::adc(uint8_t value)
     if (result > 0xFF)
         setFlags(F_CARRY);
 
-    if (static_cast<unsigned int>(a & 0x0F) + static_cast<unsigned int>(value & 0x0F) + static_cast<unsigned int>(registers.carry) > 0x0F)
+    if (static_cast<unsigned int>((uint8_t)a & 0x0F) + static_cast<unsigned int>(value & 0x0F) + static_cast<unsigned int>(registers.carry) > 0x0F)
         setFlags(F_HALF);
 
     setFlags(F_NEG);
@@ -2353,22 +2349,22 @@ void cppb::CPU::adc(uint8_t value)
 
 void cppb::CPU::sbc(uint8_t value)
 {
-    int result = a - value - registers.carry;
+    int result = (uint8_t)a - value - registers.carry;
     clearAllFlags();
     if (result == 0)
         setFlags(F_ZERO);
     if (result < 0)
         setFlags(F_CARRY);
-    if (static_cast<unsigned int>(a & 0x0F) - static_cast<unsigned int>(value & 0x0F) - static_cast<unsigned int>(registers.carry) < 0)
+    if (static_cast<int>((uint8_t)a & 0x0F) - static_cast<int>(value & 0x0F) - static_cast<int>(registers.carry) < 0)
         setFlags(F_HALF);
     a = static_cast<uint8_t>(result);
 }
 
 void cppb::CPU::sub(uint8_t value)
 {
-    int result = a - value;
+    int result = (uint8_t)a - value;
 
-    int carrys = a ^ value ^ result;
+    int carrys = (uint8_t)a ^ value ^ result;
 
     clearAllFlags();
 
@@ -2385,31 +2381,31 @@ void cppb::CPU::sub(uint8_t value)
 
 void cppb::CPU::and_op(uint8_t value)
 {
-    a &= value;
+    a = (uint8_t)((uint8_t)a & value);
     clearAllFlags();
     setFlags(F_HALF);
-    if (a == 0) setFlags(F_ZERO);
+    if ((uint8_t)a == 0) setFlags(F_ZERO);
 }
 
 void cppb::CPU::or_op(uint8_t value)
 {
-    a |= value;
+    a = (uint8_t)((uint8_t)a | value);
     clearAllFlags();
-    if (a == 0) setFlags(F_ZERO);
+    if ((uint8_t)a == 0) setFlags(F_ZERO);
 }
 
 void cppb::CPU::xor_op(uint8_t value)
 {
-    a ^= value;
+    a = (uint8_t)((uint8_t)a ^ value);
     clearAllFlags();
-    if (a == 0) setFlags(F_ZERO);
+    if ((uint8_t)a == 0) setFlags(F_ZERO);
 }
 
 void cppb::CPU::cp(uint8_t value)
 {
-    int result = a - value;
+    int result = (uint8_t)a - value;
     clearAllFlags();
-    int carrys = a ^ value ^ result;
+    int carrys = (uint8_t)a ^ value ^ result;
 
     if (result == 0) setFlags(F_ZERO);
 
@@ -2424,9 +2420,9 @@ void cppb::CPU::add_hl(uint16_t value)
 {
     clearFlags(F_NEG | F_CARRY | F_HALF);
 
-    int result = hl + value;
+    int result = (uint16_t)hl + value;
 
-    int carrys = hl ^ value ^ result;
+    int carrys = (uint16_t)hl ^ value ^ result;
 
 
     if (carrys & 0x10000) setFlags(F_CARRY);
@@ -2439,13 +2435,13 @@ void cppb::CPU::add_hl(uint16_t value)
 
 void cppb::CPU::add_sp(int8_t value)
 {
-    int result = sp + value;
+    int result = (uint16_t)sp + value;
     clearAllFlags();
-    if (((sp ^ value ^ (result & 0xFFFF)) & 0x100) == 0x100)
+    if ((((uint16_t)sp ^ value ^ (result & 0xFFFF)) & 0x100) == 0x100)
     {
         setFlags(F_CARRY);
     }
-    if (((sp ^ value ^ (result & 0xFFFF)) & 0x10) == 0x10)
+    if ((((uint16_t)sp ^ value ^ (result & 0xFFFF)) & 0x10) == 0x10)
     {
         setFlags(F_HALF);
     }
@@ -2462,7 +2458,7 @@ uint16_t cppb::CPU::dec16(uint16_t value)
     return value - 1;
 }
 
-void cppb::CPU::swap(uint8_t* dst)
+void cppb::CPU::swap(MemorySegment* dst)
 {
     clearAllFlags();
     uint8_t val = *dst;
@@ -2478,40 +2474,40 @@ void cppb::CPU::swap(uint8_t* dst)
 
 void cppb::CPU::daa()
 {
-    int a = this->a;
+    int a_r = static_cast<int>((uint8_t)a);
 
     if (!registers.neg)
     {
-        if (registers.half_c || ((a & 0xF) > 9))
-            a += 0x06;
+        if (registers.half_c || ((a_r & 0xF) > 9))
+            a_r += 0x06;
 
-        if (registers.carry || (a > 0x9F))
-            a += 0x60;
+        if (registers.carry || (a_r > 0x9F))
+            a_r += 0x60;
     }
     else
     {
         if (registers.half_c)
-            a = (a - 6) & 0xFF;
+            a_r = (a_r - 6) & 0xFF;
 
         if (registers.carry)
-            a -= 0x60;
+            a_r -= 0x60;
     }
 
     clearFlags(F_CARRY | F_ZERO | F_HALF);
 
-    if ((a & 0x100) == 0x100)
+    if ((a_r & 0x100) == 0x100)
         setFlags(F_CARRY);
 
-    a &= 0xFF;
+    a_r &= 0xFF;
 
-    if (a == 0) setFlags(F_ZERO);
+    if (a_r == 0) setFlags(F_ZERO);
 
-    this->a = a;
+    this->a = (uint8_t)a_r;
 }
 
 void cppb::CPU::cpl()
 {
-    a = ~a;
+    a = (uint8_t)(~((uint8_t)a));
     setFlags(F_HALF | F_NEG);
 }
 
@@ -2527,7 +2523,7 @@ void cppb::CPU::scf()
     clearFlags(F_HALF | F_NEG);
 }
 
-void cppb::CPU::rlc(uint8_t* val)
+void cppb::CPU::rlc(MemorySegment* val)
 {
     clearAllFlags();
     uint8_t v = *val;
@@ -2538,7 +2534,7 @@ void cppb::CPU::rlc(uint8_t* val)
     *val = v;
 }
 
-void cppb::CPU::rl(uint8_t* val)
+void cppb::CPU::rl(MemorySegment* val)
 {
     uint8_t old_c = registers.carry;
     clearAllFlags();
@@ -2550,7 +2546,7 @@ void cppb::CPU::rl(uint8_t* val)
     *val = v;
 }
 
-void cppb::CPU::rrc(uint8_t* val)
+void cppb::CPU::rrc(MemorySegment* val)
 {
     clearAllFlags();
     uint8_t v = *val;
@@ -2561,7 +2557,7 @@ void cppb::CPU::rrc(uint8_t* val)
     *val = v;
 }
 
-void cppb::CPU::rr(uint8_t* val)
+void cppb::CPU::rr(MemorySegment* val)
 {
 
     uint8_t old_c = registers.carry;
@@ -2574,7 +2570,7 @@ void cppb::CPU::rr(uint8_t* val)
     *val = v;
 }
 
-void cppb::CPU::sla(uint8_t* val)
+void cppb::CPU::sla(MemorySegment* val)
 {
     clearAllFlags();
     uint8_t v = *val;
@@ -2585,7 +2581,7 @@ void cppb::CPU::sla(uint8_t* val)
     *val = v;
 }
 
-void cppb::CPU::sra(uint8_t* val)
+void cppb::CPU::sra(MemorySegment* val)
 {
     clearAllFlags();
     uint8_t v = *val;
@@ -2600,7 +2596,7 @@ void cppb::CPU::sra(uint8_t* val)
     *val = v;
 }
 
-void cppb::CPU::srl(uint8_t* val)
+void cppb::CPU::srl(MemorySegment* val)
 {
     clearAllFlags();
     uint8_t v = *val;
@@ -2618,14 +2614,14 @@ void cppb::CPU::bit(uint8_t b, uint8_t val)
     clearFlags(F_NEG);
 }
 
-void cppb::CPU::set(uint8_t b, uint8_t *val)
+void cppb::CPU::set(uint8_t b, MemorySegment *val)
 {
     uint8_t v = *val;
     v = v | (0x1 << b);
     *val = v;
 }
 
-void cppb::CPU::res(uint8_t b, uint8_t* val)
+void cppb::CPU::res(uint8_t b, MemorySegment* val)
 {
     uint8_t v = *val;
     v = v & ~(0x1 << b);

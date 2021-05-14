@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 #include <functional>
+#include "memorymanager.h"
+
 
 #define F_ZERO 0x80
 #define F_NEG 0x40
@@ -20,7 +22,7 @@ namespace cppb
 
         typedef std::function<void()> instruction;
 
-        uint8_t* memory;
+        MemoryManager memory;
 
         instruction instructions[256];
         instruction cb_instructions[256];
@@ -67,12 +69,12 @@ namespace cppb
         void setFlags(uint8_t flags);
 
         //8-bit load
-        void load(uint8_t* dst, uint8_t src);
+        void load(MemorySegment* dst, uint8_t src);
 
         //16-bit load
-        void load_16(uint16_t* dst, uint16_t src);
+        void load_16(MemorySegment* dst, uint16_t src);
         void push(uint16_t val);
-        void pop(uint16_t* dst);
+        void pop(MemorySegment* dst);
         void jmp(uint16_t val);
 
         //8-bit alu
@@ -94,46 +96,51 @@ namespace cppb
         uint16_t dec16(uint16_t value);
 
         //Misc
-        void swap(uint8_t* dst);
+        void swap(MemorySegment* dst);
         void daa();
         void cpl();
         void ccf();
         void scf();
 
         //Rotates and shifts
-        void rlc(uint8_t* val);
-        void rl(uint8_t* val);
-        void rrc(uint8_t* val);
-        void rr(uint8_t* val);
-        void sla(uint8_t* val);
-        void sra(uint8_t* val);
-        void srl(uint8_t* val);
+        void rlc(MemorySegment* val);
+        void rl(MemorySegment* val);
+        void rrc(MemorySegment* val);
+        void rr(MemorySegment* val);
+        void sla(MemorySegment* val);
+        void sra(MemorySegment* val);
+        void srl(MemorySegment* val);
 
         //Bit opcodes
         void bit(uint8_t b, uint8_t val);
-        void set(uint8_t b, uint8_t *val);
-        void res(uint8_t b, uint8_t *val);
+        void set(uint8_t b, MemorySegment *val);
+        void res(uint8_t b, MemorySegment *val);
+
+
+        uint16_t pc_dir;
+        uint16_t sp_dir;
 
     public:
         CPU();
         regs registers;
-        uint16_t pc = 0;
-        uint16_t sp;
+
         bool halt;
         bool stop;
         bool intr;
-        uint8_t& a = registers.a;
-        uint8_t& b = registers.b;
-        uint8_t& c = registers.c;
-        uint8_t& d = registers.d;
-        uint8_t& e = registers.e;
-        uint8_t& f = registers.f;
-        uint8_t& h = registers.h;
-        uint8_t& l = registers.l;
-        uint16_t& af = registers.af;
-        uint16_t& bc = registers.bc;
-        uint16_t& de = registers.de;
-        uint16_t& hl = registers.hl;
+        MemorySegment_Register8 a;
+        MemorySegment_Register8 b;
+        MemorySegment_Register8 c;
+        MemorySegment_Register8 d;
+        MemorySegment_Register8 e;
+        MemorySegment_Register8 f;
+        MemorySegment_Register8 h;
+        MemorySegment_Register8 l;
+        MemorySegment_Register16 af;
+        MemorySegment_Register16 bc;
+        MemorySegment_Register16 de;
+        MemorySegment_Register16 hl;
+        MemorySegment_Register16 sp;
+        MemorySegment_Register16 pc;
 
 
     };
