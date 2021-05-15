@@ -99,7 +99,7 @@ MemorySegment *cppb::MemoryManager::operator[](size_t i)
 MemorySegment *cppb::MemoryManager::getSegment(size_t i)
 {
     auto it = memBlocks.begin();
-    while(it != memBlocks.end()) ++it;
+    while(it != memBlocks.end() && i < (*it)->lowerVal) ++it;
 
     size_t pos = i - (*it)->lowerVal;
     MemorySegment *segment = (*it)->segemts[pos];
