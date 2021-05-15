@@ -1,11 +1,20 @@
 #include "cartridge.h"
 #include <string.h>
 #include <algorithm>
+#include <QDebug>
+#include "memorysegment_readonly.h"
 
 #define Log(msg, ...)
 
 cppb::Cartridge::Cartridge()
 {
+    ssize_t i = 0x100;
+    ROMData[i++] = 0x06;
+    ROMData[i++] = 0x08;
+    ROMData[i++] = 0x21;
+    ROMData[i++] = 0x11;
+    ROMData[i++] = 0x22;
+    ROMData[i++] = 0x70;
 
 }
 
@@ -14,19 +23,34 @@ cppb::Cartridge &cppb::Cartridge::GetROM()
     return *(new Cartridge());
 }
 
-cppb::MemoryBlock &cppb::Cartridge::getBlock0()
+cppb::MemoryBlock &cppb::Cartridge::getBlock0(MemoryManager *manager, uint16_t lower)
 {
-    return *(new MemoryBlock(1));
+    block0 = new MemoryBlock(0x4000, lower);
+    for(size_t i = 0; i !=0x4000; i++){
+        MemorySegment *s = new MemorySegment_ReadOnly(this, manager,i + lower, ROMData[i + lower]);
+        block0->segemts[i] = s;
+    }
+    return *block0;
 }
 
-cppb::MemoryBlock &cppb::Cartridge::getBlock1()
+cppb::MemoryBlock &cppb::Cartridge::getBlock1(MemoryManager *manager, uint16_t lower)
 {
-    return *(new MemoryBlock(1));
+    block1 = new MemoryBlock(0x4000, lower);
+    for(size_t i = 0; i !=0x4000; i++){
+        MemorySegment *s = new MemorySegment_ReadOnly(this, manager,i + lower, ROMData[i + lower]);
+        block1->segemts[i] = s;
+    }
+    return *block1;
 }
 
-cppb::MemoryBlock &cppb::Cartridge::getRamBank()
+cppb::MemoryBlock &cppb::Cartridge::getRamBank(MemoryManager *manager, uint16_t lower)
 {
-    return *(new MemoryBlock(1));
+    ramBank = new MemoryBlock(0x2000, lower);
+    for(size_t i = 0; i !=0x2000; i++){
+        MemorySegment *s = new MemorySegment(manager,i + lower);
+        ramBank->segemts[i] = s;
+    }
+    return *ramBank;
 }
 void cppb::Cartridge::CheckCartridgeType(int type)
 {
@@ -332,5 +356,10 @@ void cppb::Cartridge::GatherMetadata()
     }
 
     return;
+}
+
+void cppb::Cartridge::ROMWrite(uint8_t val, uint16_t pos)
+{
+    qDebug() << "Se escribio en la ROM: " + QString::number(val,16) << " en la posicion: " << QString::number(pos,16);
 }
 

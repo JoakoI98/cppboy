@@ -1,15 +1,15 @@
 #include "cpu.h"
 #include "memorysegment.h"
-
-#define read16 MemorySegment* val = memory[pc]; pc+=2
-#define read8 MemorySegment* val = memory[pc]; pc+=1
+#include <QDebug>
+#define read16 MemorySegment* val = memory[(uint16_t)pc]; pc+=2
+#define read8 MemorySegment* val = memory[(uint16_t)pc]; pc+=1
 #define read_16(x) MemorySegment* val =memory[x]
 #define read_8(x) MemorySegment* val = memory[x]
 
 
 
-#define r16 memory[pc]; pc+=2
-#define r8 memory[pc]; pc+=1
+#define r16 memory[(uint16_t)pc]; pc+=2
+#define r8 memory[(uint16_t)pc]; pc+=1
 #define r_16(x) memory[x]
 #define r_8(x) memory[x]
 
@@ -20,8 +20,10 @@ cppb::CPU::CPU(): a(&(registers.a), &memory), b(&(registers.b), &memory), c(&(re
     d(&(registers.d), &memory), e(&(registers.e), &memory), f(&(registers.f), &memory),
     h(&(registers.h), &memory), l(&(registers.l), &memory), af(&(registers.af), &memory),
     bc(&(registers.bc), &memory), de(&(registers.de), &memory), hl(&(registers.hl), &memory),
-    sp(&(pc_dir), &memory), pc(&(sp_dir), &memory)
+    sp(&(sp_dir), &memory), pc(&(pc_dir), &memory)
 {
+    load_16(&pc, 0x100);
+    uint16_t toP = pc;
     instructions[0x00] = [this] {return; };
     instructions[0x01] = [this](){
         read16;
@@ -2225,6 +2227,36 @@ cppb::CPU::CPU(): a(&(registers.a), &memory), b(&(registers.b), &memory), c(&(re
         set(7, &a);
         return;
     };
+}
+
+void cppb::CPU::ejec()
+{
+    read8;
+    uint8_t inst = *val;
+    instructions[inst]();
+}
+
+QStringList cppb::CPU::getInfo()
+{
+    QString regs = "Registros:";
+    QString qsa = "a:  0x" + QString::number(registers.a,16);
+    QString qsb = "b:  0x" + QString::number(registers.b,16);
+    QString qsc = "c:  0x" + QString::number(registers.c,16);
+    QString qsd = "d:  0x" + QString::number(registers.d,16);
+    QString qse = "e:  0x" + QString::number(registers.e,16);
+    QString qsf = "f:  0x" + QString::number(registers.f,16);
+    QString qsh = "h:  0x" + QString::number(registers.h,16);
+    QString qsl = "l:  0x" + QString::number(registers.l,16);
+    QString qssp = "sp:  0x" + QString::number(sp_dir,16);
+    QString qspc = "pc:  0x" + QString::number(pc_dir,16);
+    QStringList list({regs, qsa, qsb, qsc, qsd, qse, qsf, qsh, qsl, qssp, qspc, "Memoria:"});
+
+    for(uint16_t i = 0x100; i< 0x1A0; i++){
+        MemorySegment *s = memory[i];
+        uint8_t v = *s;
+        list.append("0x" + QString::number(i,16) + ":  0x" + QString::number(v,16));
+    }
+    return list;
 }
 
 void cppb::CPU::clearAllFlags()

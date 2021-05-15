@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <functional>
+#include <qstringlist.h>
 #include "memorymanager.h"
 
 
@@ -124,6 +125,9 @@ namespace cppb
         CPU();
         regs registers;
 
+
+        void ejec();
+        QStringList getInfo();
         bool halt;
         bool stop;
         bool intr;

@@ -3,12 +3,13 @@
 #include <stdint.h>
 #include "memorymanager.h"
 #include "memoryblock.h"
+#include "ROM.h"
 
 namespace cppb
 {
 
 
-class Cartridge
+class Cartridge: public ROM
 {
 public:
     enum CartridgeTypes
@@ -27,16 +28,17 @@ public:
     Cartridge();
 
     static Cartridge &GetROM();
-    MemoryBlock &getBlock0();
-    MemoryBlock &getBlock1();
-    MemoryBlock &getRamBank();
-
+    MemoryBlock &getBlock0(MemoryManager *manager, uint16_t lower = 0x0000);
+    MemoryBlock &getBlock1(MemoryManager *manager, uint16_t lower = 0x4000);
+    MemoryBlock &getRamBank(MemoryManager *manager, uint16_t lower = 0xA000);
+    uint8_t ROMData[0x8000] = {0};
 
 private:
     void CheckCartridgeType(int type);
     unsigned int Pow2Ceil(unsigned int n);
 
 private:
+    MemoryBlock *block0, *block1, *ramBank;
     void GatherMetadata();
     uint8_t *pTheROM;
     char szName[16];
@@ -55,6 +57,10 @@ private:
     CartridgeTypes type;
 
 
+
+    // ROM interface
+public:
+    void ROMWrite(uint8_t val, uint16_t pos);
 };
 }
 #endif // CARTRIDGE_H

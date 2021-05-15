@@ -4,11 +4,19 @@
 
 #include <SFML/Window.hpp>
 
+#include "cpu.h"
+#include <QDebug>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MainWindow w;
+
+    cppb::CPU cpu;
+    QStringList initialState = cpu.getInfo();
+    w.refreshList(initialState);
+    w.cpu = &cpu;
+
     w.show();
     return a.exec();
 }

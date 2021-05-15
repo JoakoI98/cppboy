@@ -16,15 +16,18 @@ SOURCES += \
     memoryblock.cpp \
     memorymanager.cpp \
     memorysegment.cpp \
+    memorysegment_readonly.cpp \
     qsfmlcanvas.cpp
 
 HEADERS += \
+    ROM.h \
     cartridge.h \
     cpu.h \
     mainwindow.h \
     memoryblock.h \
     memorymanager.h \
     memorysegment.h \
+    memorysegment_readonly.h \
     qsfmlcanvas.h
 
 FORMS += \

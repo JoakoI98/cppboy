@@ -14,9 +14,16 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="MyCanvas" name="widget" native="true"/>
+     <widget class="QListWidget" name="lst_showList"/>
+    </item>
+    <item>
+     <widget class="QPushButton" name="btn_Continue">
+      <property name="text">
+       <string>Continuar</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -50,14 +57,6 @@
    </property>
   </action>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>MyCanvas</class>
-   <extends>QWidget</extends>
-   <header>qsfmlcanvas.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

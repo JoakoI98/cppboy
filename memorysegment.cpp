@@ -1,10 +1,11 @@
 #include "memorysegment.h"
 #include "memorymanager.h"
-
+#include <QDebug>
 using namespace cppb;
 
 cppb::MemorySegment::operator uint16_t() const
 {
+
     uint8_t next = *(manager->getSegment(i+1));
     uint16_t ret = ((uint16_t)(next << 8) & 0xff00) + (uint16_t)(val & 0x00ff);
     return ret;
@@ -47,6 +48,11 @@ void cppb::MemorySegment::setManager(MemoryManager *manager)
         this->manager = manager;
         manager_set = true;
     }
+}
+
+uint8_t MemorySegment::getVal() const
+{
+    return val;
 }
 
 cppb::MemorySegment_Register8::MemorySegment_Register8(uint8_t *dir, MemoryManager *manager): MemorySegment(manager, 0), dir(dir){}

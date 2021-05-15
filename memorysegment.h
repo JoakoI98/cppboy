@@ -2,13 +2,14 @@
 #define MEMORYSEGMENT_H
 #include <stdint.h>
 //#include "memorymanager.h"
-
+#include <QDebug>
 namespace cppb {
 
 class MemoryManager;
 class MemorySegment
 {
 public:
+
     MemorySegment(MemoryManager *manager,size_t i);
     MemorySegment(MemoryManager *manager);
 
@@ -53,9 +54,11 @@ public:
     }
     void setManager(MemoryManager *manager);
 
-private:
+    uint8_t getVal() const;
+
+protected:
     MemoryManager *manager;
-    size_t i;
+    uint16_t i;
     uint8_t val;
     bool i_set = false;
     bool manager_set = false;
@@ -148,4 +151,5 @@ private:
 
 };
 }
+
 #endif // MEMORYSEGMENT_H
