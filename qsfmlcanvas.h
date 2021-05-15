@@ -37,7 +37,7 @@ class MyCanvas : public QSFMLCanvas
     MyCanvas(QWidget* parent): QSFMLCanvas(parent){}
     void OnInit(){}
     void OnUpdate(){
-        RenderWindow::clear(sf::Color(0, 128, 0));
+        RenderWindow::clear(sf::Color(0, 0, 0));
         sf::CircleShape shape(100.f);
         shape.setFillColor(sf::Color::Green);
         draw(shape);
