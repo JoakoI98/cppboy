@@ -8,6 +8,26 @@ cppb::Cartridge::Cartridge()
 {
 
 }
+
+cppb::Cartridge &cppb::Cartridge::GetROM()
+{
+    return *(new Cartridge());
+}
+
+cppb::MemoryBlock &cppb::Cartridge::getBlock0()
+{
+    return *(new MemoryBlock(1));
+}
+
+cppb::MemoryBlock &cppb::Cartridge::getBlock1()
+{
+    return *(new MemoryBlock(1));
+}
+
+cppb::MemoryBlock &cppb::Cartridge::getRamBank()
+{
+    return *(new MemoryBlock(1));
+}
 void cppb::Cartridge::CheckCartridgeType(int type)
 {
     if ((type != 0xEA) && (iROMSize == 0))

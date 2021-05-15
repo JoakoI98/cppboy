@@ -16,11 +16,11 @@
 
 
 
-cppb::CPU::CPU(): a(&(registers.a), memory), b(&(registers.b), memory), c(&(registers.c), memory),
-    d(&(registers.d), memory), e(&(registers.e), memory), f(&(registers.f), memory),
-    h(&(registers.h), memory), l(&(registers.l), memory), af(&(registers.af), memory),
-    bc(&(registers.bc), memory), de(&(registers.de), memory), hl(&(registers.hl), memory),
-    sp(&(pc_dir), memory), pc(&(sp_dir), memory)
+cppb::CPU::CPU(): a(&(registers.a), &memory), b(&(registers.b), &memory), c(&(registers.c), &memory),
+    d(&(registers.d), &memory), e(&(registers.e), &memory), f(&(registers.f), &memory),
+    h(&(registers.h), &memory), l(&(registers.l), &memory), af(&(registers.af), &memory),
+    bc(&(registers.bc), &memory), de(&(registers.de), &memory), hl(&(registers.hl), &memory),
+    sp(&(pc_dir), &memory), pc(&(sp_dir), &memory)
 {
     instructions[0x00] = [this] {return; };
     instructions[0x01] = [this](){

@@ -13,6 +13,7 @@ SOURCES += \
     cpu.cpp \
     main.cpp \
     mainwindow.cpp \
+    memoryblock.cpp \
     memorymanager.cpp \
     memorysegment.cpp \
     qsfmlcanvas.cpp
@@ -21,6 +22,7 @@ HEADERS += \
     cartridge.h \
     cpu.h \
     mainwindow.h \
+    memoryblock.h \
     memorymanager.h \
     memorysegment.h \
     qsfmlcanvas.h

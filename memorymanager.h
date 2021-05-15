@@ -4,9 +4,15 @@
 #include <list>
 #include "memorysegment.h"
 #include <vector>
+#include "cartridge.h"
+#include "memoryblock.h"
 
-class Cartridge;
-class MemorySegment;
+namespace cppb
+{
+
+
+
+
 class MemoryManager
 {
 public:
@@ -16,14 +22,9 @@ public:
 
 
 private:
-    struct MemoryBlock{
-        size_t size, lowerVal;
-        std::vector<MemorySegment&> segemts;
-        MemoryBlock(size_t segmentSize):segemts(segmentSize) {}
-        MemoryBlock(size_t segmentSize, size_t low):segemts(segmentSize), lowerVal(low) {}
-    };
-    std::list<MemoryBlock&> memBlocks;
+
+    std::list<MemoryBlock *> memBlocks;
 
 };
-
+}
 #endif // MEMORYMANAGER_H

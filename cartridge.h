@@ -1,10 +1,13 @@
 #ifndef CARTRIDGE_H
 #define CARTRIDGE_H
 #include <stdint.h>
-
+#include "memorymanager.h"
+#include "memoryblock.h"
 
 namespace cppb
 {
+
+
 class Cartridge
 {
 public:
@@ -22,6 +25,13 @@ public:
 
 
     Cartridge();
+
+    static Cartridge &GetROM();
+    MemoryBlock &getBlock0();
+    MemoryBlock &getBlock1();
+    MemoryBlock &getRamBank();
+
+
 private:
     void CheckCartridgeType(int type);
     unsigned int Pow2Ceil(unsigned int n);
