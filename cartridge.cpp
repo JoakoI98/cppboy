@@ -9,12 +9,20 @@
 cppb::Cartridge::Cartridge()
 {
     ssize_t i = 0x100;
-    ROMData[i++] = 0x06;
-    ROMData[i++] = 0x08;
-    ROMData[i++] = 0x21;
-    ROMData[i++] = 0x11;
-    ROMData[i++] = 0x22;
-    ROMData[i++] = 0x70;
+    ROMData[i++] = 0xFB;
+    ROMData[i++] = 0x3E;
+    ROMData[i++] = 0x02;
+    ROMData[i++] = 0x01;
+    ROMData[i++] = 0xFF;
+    ROMData[i++] = 0xFF;
+    ROMData[i++] = 0x02;
+    ROMData[i++] = 0x01;
+    ROMData[i++] = 0x0F;
+    ROMData[i++] = 0xFF;
+    ROMData[i++] = 0x02;
+    ROMData[i++] = 0x00;
+    ROMData[i++] = 0x00;
+    ROMData[i++] = 0x00;
 
 }
 

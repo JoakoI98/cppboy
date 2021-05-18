@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     MainWindow w;
 
     cppb::CPU cpu;
-    QStringList initialState = cpu.getInfo();
+    QStringList initialState = cpu.getInfo(true) + cpu.getInfo(0x40, 0x48, false);
     w.refreshList(initialState);
     w.cpu = &cpu;
 

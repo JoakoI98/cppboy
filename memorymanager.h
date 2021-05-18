@@ -6,7 +6,7 @@
 #include <vector>
 #include "cartridge.h"
 #include "memoryblock.h"
-
+#include <exception>
 namespace cppb
 {
 
@@ -17,14 +17,22 @@ class MemoryManager
 {
 public:
     MemoryManager();
-    MemorySegment *operator[](size_t i);
-    MemorySegment *getSegment(size_t i);
+    MemorySegment *operator[](uint16_t i);
+    MemorySegment *getSegment(uint16_t i);
 
 
 private:
 
     std::list<MemoryBlock *> memBlocks;
 
+};
+
+class SegmentIndexingException : public std::exception{
+public:
+    SegmentIndexingException(uint16_t memory, MemoryBlock *block);
+public:
+    MemoryBlock *block;
+    uint16_t memory;
 };
 }
 #endif // MEMORYMANAGER_H

@@ -1,6 +1,7 @@
 #include "cpu.h"
 #include "memorysegment.h"
 #include <QDebug>
+#include <math.h>
 #define read16 MemorySegment* val = memory[(uint16_t)pc]; pc+=2
 #define read8 MemorySegment* val = memory[(uint16_t)pc]; pc+=1
 #define read_16(x) MemorySegment* val =memory[x]
@@ -23,7 +24,8 @@ cppb::CPU::CPU(): a(&(registers.a), &memory), b(&(registers.b), &memory), c(&(re
     sp(&(sp_dir), &memory), pc(&(pc_dir), &memory)
 {
     load_16(&pc, 0x100);
-    uint16_t toP = pc;
+    load_16(&sp, 0x10d);
+
     instructions[0x00] = [this] {return; };
     instructions[0x01] = [this](){
         read16;
@@ -913,7 +915,9 @@ cppb::CPU::CPU(): a(&(registers.a), &memory), b(&(registers.b), &memory), c(&(re
         return;
     };
     instructions[0xcb] = [this]() {
-        cp(e);
+        read8;
+        uint8_t toDo = *val;
+        cb_instructions[toDo]();
         return;
     };
     instructions[0xcc] = [this]() {
@@ -2229,15 +2233,46 @@ cppb::CPU::CPU(): a(&(registers.a), &memory), b(&(registers.b), &memory), c(&(re
     };
 }
 
+cppb::CPU::InterruptMask cppb::CPU::checkInterrupts()
+{
+    InterruptMask IF, IE, result;
+
+    IF.mask = *(memory[0xFF0F]);
+    IE.mask = *(memory[0xFFFF]);
+
+    result.mask = IF.mask & IE.mask & 0x1F; //Only care about 5 lower bits, Interrupt flag, ang Interrupt enable have to be 1
+    return result;
+}
+
 void cppb::CPU::ejec()
 {
+    //Handle interrupt
+    qDebug() << "Entrando a check intr";
+    InterruptMask interruptCheck = checkInterrupts();
+    if(interruptCheck.mask && intr){
+        uint8_t interrupt = log2(interruptCheck.mask);
+        uint16_t location = 0x40 + 8*interrupt;
+        push(pc);
+        pc = location;
+        intr = false;
+        halt = false;
+    }
+
+    if(halt && !intr){
+        uint8_t IF_flag = * (memory[0xFF0F]);
+        if(IF_flag)
+            halt = false;
+    }
+    if(halt) return;
     read8;
     uint8_t inst = *val;
     instructions[inst]();
 }
 
-QStringList cppb::CPU::getInfo()
+QStringList cppb::CPU::getInfo(bool includeRegs)
 {
+    QStringList list;
+    if(includeRegs){
     QString regs = "Registros:";
     QString qsa = "a:  0x" + QString::number(registers.a,16);
     QString qsb = "b:  0x" + QString::number(registers.b,16);
@@ -2249,12 +2284,42 @@ QStringList cppb::CPU::getInfo()
     QString qsl = "l:  0x" + QString::number(registers.l,16);
     QString qssp = "sp:  0x" + QString::number(sp_dir,16);
     QString qspc = "pc:  0x" + QString::number(pc_dir,16);
-    QStringList list({regs, qsa, qsb, qsc, qsd, qse, qsf, qsh, qsl, qssp, qspc, "Memoria:"});
+    QStringList listRegs({regs, qsa, qsb, qsc, qsd, qse, qsf, qsh, qsl, qssp, qspc});
+    list += listRegs;
+    }
+    list.append("Memoria:");
 
-    for(uint16_t i = 0x100; i< 0x1A0; i++){
+    for(uint16_t i = 0x100; i< 0x110; i++){
         MemorySegment *s = memory[i];
         uint8_t v = *s;
         list.append("0x" + QString::number(i,16) + ":  0x" + QString::number(v,16));
+    }
+    return list;
+}
+
+QStringList cppb::CPU::getInfo(uint16_t to, uint16_t from,bool includeRegs)
+{
+    QStringList list;
+    if(includeRegs){
+    QString regs = "Registros:";
+    QString qsa = "a:  0x" + QString::number(registers.a,16);
+    QString qsb = "b:  0x" + QString::number(registers.b,16);
+    QString qsc = "c:  0x" + QString::number(registers.c,16);
+    QString qsd = "d:  0x" + QString::number(registers.d,16);
+    QString qse = "e:  0x" + QString::number(registers.e,16);
+    QString qsf = "f:  0x" + QString::number(registers.f,16);
+    QString qsh = "h:  0x" + QString::number(registers.h,16);
+    QString qsl = "l:  0x" + QString::number(registers.l,16);
+    QString qssp = "sp:  0x" + QString::number(sp_dir,16);
+    QString qspc = "pc:  0x" + QString::number(pc_dir,16);
+    QStringList listRegs({regs, qsa, qsb, qsc, qsd, qse, qsf, qsh, qsl, qssp, qspc});
+    list += listRegs;
+    }
+    list.append("Memoria: (" + QString::number(from, 16) + " -- " + QString::number(to, 16) +")");
+    for(uint16_t i = 0; i<=from - to; i++){
+        MemorySegment *s = memory[i + to];
+        uint8_t v = *s;
+        list.append("0x" + QString::number(i + to,16) + ":  0x" + QString::number(v,16));
     }
     return list;
 }
@@ -2659,4 +2724,6 @@ void cppb::CPU::res(uint8_t b, MemorySegment* val)
     v = v & ~(0x1 << b);
     *val = v;
 }
+
+
 

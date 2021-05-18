@@ -64,6 +64,18 @@ namespace cppb
 
         };
 
+        union InterruptMask{
+            uint8_t mask;
+            struct {
+                uint8_t v_blank: 1;
+                uint8_t lcd_start: 1;
+                uint8_t timer: 1;
+                uint8_t serial: 1;
+                uint8_t joypad: 1;
+                uint8_t: 3;
+            };
+        };
+
         void clearAllFlags();
         void clearFlags(uint8_t flags);
         void setAllFlags();
@@ -122,15 +134,25 @@ namespace cppb
         uint16_t sp_dir;
 
     public:
+        //Debugging
+        QStringList getInfo(bool includeRegs = false);
+        QStringList getInfo(uint16_t to, uint16_t from, bool includeRegs = false);
+
+        //Cicle run
+        void ejec();
+
         CPU();
         regs registers;
 
+        //States
+        bool halt = false;
+        bool stop = false;
+        bool intr = false;
 
-        void ejec();
-        QStringList getInfo();
-        bool halt;
-        bool stop;
-        bool intr;
+
+
+
+        //Registers
         MemorySegment_Register8 a;
         MemorySegment_Register8 b;
         MemorySegment_Register8 c;
@@ -146,6 +168,8 @@ namespace cppb
         MemorySegment_Register16 sp;
         MemorySegment_Register16 pc;
 
+        //Interrupt Handling
+        InterruptMask checkInterrupts();
 
     };
 

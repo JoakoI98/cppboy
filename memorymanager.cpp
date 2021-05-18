@@ -1,6 +1,8 @@
 #include "memorymanager.h"
 #include <stdlib.h>
 #include <string.h>
+#include <QDebug>
+
 
 using namespace cppb;
 
@@ -91,19 +93,34 @@ cppb::MemoryManager::MemoryManager()
     memBlocks.push_back(IREG);
 }
 
-MemorySegment *cppb::MemoryManager::operator[](size_t i)
+MemorySegment *cppb::MemoryManager::operator[](uint16_t i)
 {
     return getSegment(i);
 }
 
-MemorySegment *cppb::MemoryManager::getSegment(size_t i)
-{
-    auto it = memBlocks.begin();
-    while(it != memBlocks.end() && i < (*it)->lowerVal) ++it;
 
-    size_t pos = i - (*it)->lowerVal;
-    MemorySegment *segment = (*it)->segemts[pos];
+
+
+MemorySegment *cppb::MemoryManager::getSegment(uint16_t i)
+{
+    MemoryBlock *required = *memBlocks.begin();
+    for(auto x: memBlocks){
+        if(i >= x->lowerVal && i <= (x->lowerVal + x->size)){
+            required = x;
+        }
+    }
+    uint16_t pos = i - required->lowerVal;
+    if(pos > required->size){
+        qDebug() << "Error en indexado de segmento";
+        throw SegmentIndexingException(i, required);
+    }
+    MemorySegment *segment = required->segemts[pos];
     return segment;
 }
 
 
+
+SegmentIndexingException::SegmentIndexingException(uint16_t memory, MemoryBlock *block): block(block), memory(memory)
+{
+
+}
