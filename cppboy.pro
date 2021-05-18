@@ -9,29 +9,29 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    cartridge.cpp \
-    cpu.cpp \
+    cartridge/cartridge.cpp \
+    cpu/cpu.cpp \
     main.cpp \
-    mainwindow.cpp \
-    memoryblock.cpp \
-    memorymanager.cpp \
-    memorysegment.cpp \
-    memorysegment_readonly.cpp \
-    qsfmlcanvas.cpp
+    interface/mainwindow.cpp \
+    memory/memoryblock.cpp \
+    memory/memorymanager.cpp \
+    memory/memorysegment.cpp \
+    memory/memorysegment_readonly.cpp \
+    interface/qsfmlcanvas.cpp
 
 HEADERS += \
-    ROM.h \
-    cartridge.h \
-    cpu.h \
-    mainwindow.h \
-    memoryblock.h \
-    memorymanager.h \
-    memorysegment.h \
-    memorysegment_readonly.h \
-    qsfmlcanvas.h
+    cartridge/ROM.h \
+    cartridge/cartridge.h \
+    cpu/cpu.h \
+    interface/mainwindow.h \
+    memory/memoryblock.h \
+    memory/memorymanager.h \
+    memory/memorysegment.h \
+    memory/memorysegment_readonly.h \
+    interface/qsfmlcanvas.h
 
 FORMS += \
-    mainwindow.ui
+    interface/mainwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

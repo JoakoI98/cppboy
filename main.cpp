@@ -1,10 +1,10 @@
-#include "mainwindow.h"
+#include "interface/mainwindow.h"
 
 #include <QApplication>
 
 #include <SFML/Window.hpp>
 
-#include "cpu.h"
+#include "cpu/cpu.h"
 #include <QDebug>
 
 int main(int argc, char *argv[])
