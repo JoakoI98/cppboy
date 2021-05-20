@@ -32,6 +32,7 @@ void MainWindow::on_actionLoadROM_triggered()
 void MainWindow::on_btn_Continue_clicked()
 {
     cpu->ejec();
-    QStringList newData = cpu->getInfo(true) + cpu->getInfo(0x40, 0x48, false) + cpu->getInfo(0xFF0B, 0xFF0F, false) + cpu->getInfo(0xFFFB, 0xFFFF, false);
+    if(debug == nullptr) return;
+    QStringList newData = debug->getInfo(true, true) + debug->getInfo(0x40, 0x48, false) + debug->getInfo(0xFF0B, 0xFF0F, false) + debug->getInfo(0xFFFB, 0xFFFF, false);
     refreshList(newData);
 }

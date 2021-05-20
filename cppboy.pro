@@ -11,6 +11,7 @@ CONFIG += c++11
 SOURCES += \
     cartridge/cartridge.cpp \
     cpu/cpu.cpp \
+    cpu/cpu_debug.cpp \
     main.cpp \
     interface/mainwindow.cpp \
     memory/memoryblock.cpp \
@@ -23,6 +24,7 @@ HEADERS += \
     cartridge/ROM.h \
     cartridge/cartridge.h \
     cpu/cpu.h \
+    cpu/cpu_debug.h \
     interface/mainwindow.h \
     memory/memoryblock.h \
     memory/memorymanager.h \

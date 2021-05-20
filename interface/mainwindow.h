@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QDebug>
+#include "../cpu/cpu_debug.h"
 #include "../cpu/cpu.h"
 
 
@@ -19,6 +20,7 @@ public:
     ~MainWindow();
     void refreshList(QStringList toUpdate);
     cppb::CPU *cpu = nullptr;
+    cppb::cpu_debug *debug = nullptr;
 
 private slots:
     void on_actionLoadROM_triggered();

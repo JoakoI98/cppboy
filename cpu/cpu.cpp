@@ -2269,60 +2269,6 @@ void cppb::CPU::ejec()
     instructions[inst]();
 }
 
-QStringList cppb::CPU::getInfo(bool includeRegs)
-{
-    QStringList list;
-    if(includeRegs){
-    QString regs = "Registros:";
-    QString qsa = "a:  0x" + QString::number(registers.a,16);
-    QString qsb = "b:  0x" + QString::number(registers.b,16);
-    QString qsc = "c:  0x" + QString::number(registers.c,16);
-    QString qsd = "d:  0x" + QString::number(registers.d,16);
-    QString qse = "e:  0x" + QString::number(registers.e,16);
-    QString qsf = "f:  0x" + QString::number(registers.f,16);
-    QString qsh = "h:  0x" + QString::number(registers.h,16);
-    QString qsl = "l:  0x" + QString::number(registers.l,16);
-    QString qssp = "sp:  0x" + QString::number(sp_dir,16);
-    QString qspc = "pc:  0x" + QString::number(pc_dir,16);
-    QStringList listRegs({regs, qsa, qsb, qsc, qsd, qse, qsf, qsh, qsl, qssp, qspc});
-    list += listRegs;
-    }
-    list.append("Memoria:");
-
-    for(uint16_t i = 0x100; i< 0x110; i++){
-        MemorySegment *s = memory[i];
-        uint8_t v = *s;
-        list.append("0x" + QString::number(i,16) + ":  0x" + QString::number(v,16));
-    }
-    return list;
-}
-
-QStringList cppb::CPU::getInfo(uint16_t to, uint16_t from,bool includeRegs)
-{
-    QStringList list;
-    if(includeRegs){
-    QString regs = "Registros:";
-    QString qsa = "a:  0x" + QString::number(registers.a,16);
-    QString qsb = "b:  0x" + QString::number(registers.b,16);
-    QString qsc = "c:  0x" + QString::number(registers.c,16);
-    QString qsd = "d:  0x" + QString::number(registers.d,16);
-    QString qse = "e:  0x" + QString::number(registers.e,16);
-    QString qsf = "f:  0x" + QString::number(registers.f,16);
-    QString qsh = "h:  0x" + QString::number(registers.h,16);
-    QString qsl = "l:  0x" + QString::number(registers.l,16);
-    QString qssp = "sp:  0x" + QString::number(sp_dir,16);
-    QString qspc = "pc:  0x" + QString::number(pc_dir,16);
-    QStringList listRegs({regs, qsa, qsb, qsc, qsd, qse, qsf, qsh, qsl, qssp, qspc});
-    list += listRegs;
-    }
-    list.append("Memoria: (" + QString::number(from, 16) + " -- " + QString::number(to, 16) +")");
-    for(uint16_t i = 0; i<=from - to; i++){
-        MemorySegment *s = memory[i + to];
-        uint8_t v = *s;
-        list.append("0x" + QString::number(i + to,16) + ":  0x" + QString::number(v,16));
-    }
-    return list;
-}
 
 void cppb::CPU::clearAllFlags()
 {

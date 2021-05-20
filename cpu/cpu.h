@@ -16,7 +16,7 @@
 namespace cppb
 {
 
-
+    class cpu_debug;
     class CPU
     {
     private:
@@ -27,7 +27,7 @@ namespace cppb
 
         instruction instructions[256];
         instruction cb_instructions[256];
-
+        friend class cpu_debug;
 
         union regs
         {
@@ -134,10 +134,6 @@ namespace cppb
         uint16_t sp_dir;
 
     public:
-        //Debugging
-        QStringList getInfo(bool includeRegs = false);
-        QStringList getInfo(uint16_t to, uint16_t from, bool includeRegs = false);
-
         //Cicle run
         void ejec();
 
